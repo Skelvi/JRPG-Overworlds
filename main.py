@@ -6,23 +6,35 @@ import numpy as np
 ##definindo variaveis importantes como o servidor que o bot ira ficar online e a biblioteca intents
 intents = discord.Intents.default()
 intents.message_content = True
-id_do_servidor =""
-aclient = discord.Client (intents=intents)
+
+##comando para o bot responder quando eles estiver funcionando
+class client(discord.Client):
+    def __init__(self):
+        super().__init__(intents=discord.Intents.all())
+        self.synced = False
+
+    async def on_ready(self):
+      await self.wait_until_ready()
+      if not self.synced:
+          await tree.sync()
+          self.synced = True
+      guild_count = 0
+      for guild in aclient.guilds:
+        print (f"- {guild.id} (nome: {guild.name})")
+        guild_count = guild_count + 1
+      print ('bot online com o usuario {0.user}'.format(aclient))
+      
+aclient = client()
 tree = app_commands.CommandTree(aclient)
 listaquiz=[]
 
-##comando para o bot responder quando eles estiver funcionando
-@aclient.event 
-async def on_ready():
-  print ('bot online com o usuario {0.user}'.format(aclient))
-
 ##comando de teste basico, talvez excluir depois?
-@tree.command(guild = discord.Object(id=id_do_servidor), name = 'teste', description='testando')
+@tree.command(name='teste', description='testando') 
 async def teste(interaction: discord.Interaction):
   await interaction.response.send_message(f"estou funcionando",ephemeral = False)
 
 ##comando de imagem aleatoria
-@tree.command(guild = discord.Object(id=id_do_servidor), name = 'random', description='Pega uma imagem de um mundo de JRPG randômico')
+@tree.command(name='random', description='Pega uma imagem de um mundo de JRPG randômico')
 async def imagem(interacao: discord.Interaction):
   overworlds = os.listdir("overworlds")
   imagens = random.choice(overworlds)
@@ -30,7 +42,7 @@ async def imagem(interacao: discord.Interaction):
   await interacao.response.send_message(file=discord.File(imagemradomica), ephemeral = False)
 
 ##comando de quiz basico
-@tree.command(guild = discord.Object(id=id_do_servidor), name = 'quiz', description='Teste os seus conhecimentos de JRPGs!')
+@tree.command(name='quiz', description='Teste os seus conhecimentos de JRPGs!')
 async def quiz(interacao: discord.Interaction):
 ##Checando para ver se o usuario já está jogando
   if interacao.user in listaquiz:
@@ -50,7 +62,7 @@ async def quiz(interacao: discord.Interaction):
     u = str(questao[4])
     x = str(questao[0])
     imagemquiz = os.path.join("quizimages", x)
-    await interacao.response.send_message(f"{interacao.user} Qual é esse jogo? você tem 15 segundos e uma tentativa só!",file=discord.File(imagemquiz),ephemeral=False)
+    await interacao.response.send_message(f"@{interacao.user} Qual é esse jogo? você tem 15 segundos e uma tentativa só!",file=discord.File(imagemquiz),ephemeral=False)
 ##checagens do quiz
     while True: 
       try:
@@ -58,13 +70,13 @@ async def quiz(interacao: discord.Interaction):
         if msg.channel == interacao.channel and msg.author == interacao.user:
           palpite = msg.content
           if palpite == y or palpite == z or palpite == o or palpite == u:
-            await interacao.followup.send(f"Você acertou {interacao.user}")
+            await interacao.followup.send(f"Você acertou @{interacao.user}")
             break
           else:
-            await interacao.followup.send(f"Você errou {interacao.user}.")
+            await interacao.followup.send(f"Você errou @{interacao.user}.")
             break
       except asyncio.TimeoutError:
-        await interacao.followup.send(f"Acabou o tempo {interacao.user}!")
+        await interacao.followup.send(f"Acabou o tempo @{interacao.user}!")
         break
     listaquiz.remove(interacao.user)
     
